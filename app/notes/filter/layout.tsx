@@ -1,8 +1,6 @@
 import { ReactNode } from 'react';
 import css from './layout.module.css';
 
-const TAGS = ['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'];
-
 interface FilterLayoutProps {
   children: ReactNode;
   sidebar: ReactNode;
