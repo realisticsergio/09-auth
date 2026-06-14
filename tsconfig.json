@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -23,9 +19,12 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"],
+      "@/lib/api/clientApi": ["./lib/api/api.ts"],
+      "@/lib/api/serverApi": ["./lib/api/serverApi.ts"],
+      "@/lib/store/*": ["./lib/store/*"],
+      "@/components/*": ["./components/*"],
+      "@/types/*": ["./types/*"]
     }
   },
   "include": [
@@ -36,7 +35,5 @@
     "**/*.mts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

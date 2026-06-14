@@ -5,6 +5,7 @@ import Provider from '@/components/TanStackProvider/TanStackProvider';
 import './globals.css';
 import { Roboto } from 'next/font/google';
 import React from 'react';
+import AuthProvider from '@/components/AuthProvider/AuthProvider';
 
 const roboto = Roboto({
   weight: ['400', '500', '700'],
@@ -37,10 +38,12 @@ export default function RootLayout({ children, modal }: RootLayoutProps) {
     <html lang="en" className={roboto.variable}>
       <body style={{ fontFamily: 'var(--font-roboto), sans-serif' }}>
         <Provider>
-          <Header />
-          <main>{children}</main>
-          {modal}
-          <Footer />
+          <AuthProvider>
+            <Header />
+            <main>{children}</main>
+            {modal}
+            <Footer />
+          </AuthProvider>
         </Provider>
       </body>
     </html>
