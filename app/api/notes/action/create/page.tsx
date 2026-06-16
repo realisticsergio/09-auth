@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import NoteForm from '@/components/NoteForm/NoteForm';
-import css from '../../../page.module.css';
+import css from './page.module.css';
 
 const OG_IMAGE = 'https://ac.goit.global/fullstack/react/notehub-og-meta.jpg';
 
