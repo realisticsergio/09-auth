@@ -1,46 +1,44 @@
 import { cookies } from 'next/headers';
-import { api } from '../../app/api/api';
+import { api } from './api';
+import type { Note } from '@/types/note';
+import type { User } from '@/types/user';
 
-import { Note } from '@/types/note';
-import { User } from '@/types/user';
+// -----------------------------
+// AUTH HELPERS (CONSISTENT COOKIE ONLY)
+// -----------------------------
 
-interface NotesResponse {
-  notes: Note[];
-  totalPages: number;
-}
-
-async function getCookieHeader() {
+export async function getCookieHeader(): Promise<string> {
   const cookieStore = await cookies();
 
   return cookieStore
     .getAll()
-    .map((cookie) => `${cookie.name}=${cookie.value}`)
+    .map(({ name, value }) => `${name}=${value}`)
     .join('; ');
 }
 
-export async function fetchNotes(
-  query: string,
-  page: number,
-  tag?: string
-): Promise<NotesResponse> {
+// -----------------------------
+// NOTES
+// -----------------------------
+
+export const fetchNotes = async (params: {
+  page?: number;
+  perPage?: number;
+  search?: string;
+  tag?: string;
+}): Promise<{ notes: Note[]; totalPages: number }> => {
   const cookieHeader = await getCookieHeader();
 
   const { data } = await api.get('/notes', {
     headers: {
       Cookie: cookieHeader,
     },
-    params: {
-      search: query,
-      page,
-      perPage: 12,
-      ...(tag && { tag }),
-    },
+    params,
   });
 
   return data;
-}
+};
 
-export async function fetchNoteById(id: string): Promise<Note> {
+export const fetchNoteById = async (id: string): Promise<Note> => {
   const cookieHeader = await getCookieHeader();
 
   const { data } = await api.get(`/notes/${id}`, {
@@ -50,21 +48,13 @@ export async function fetchNoteById(id: string): Promise<Note> {
   });
 
   return data;
-}
+};
 
-export async function checkSession() {
-  const cookieHeader = await getCookieHeader();
+// -----------------------------
+// USER
+// -----------------------------
 
-  const { data } = await api.get('/auth/session', {
-    headers: {
-      Cookie: cookieHeader,
-    },
-  });
-
-  return data || null;
-}
-
-export async function getMe(): Promise<User> {
+export const getMe = async (): Promise<User> => {
   const cookieHeader = await getCookieHeader();
 
   const { data } = await api.get('/users/me', {
@@ -74,4 +64,20 @@ export async function getMe(): Promise<User> {
   });
 
   return data;
-}
+};
+
+// -----------------------------
+// SESSION
+// -----------------------------
+
+export const checkSession = async (): Promise<import('axios').AxiosResponse> => {
+  const cookieHeader = await getCookieHeader();
+
+  const response = await api.get('/auth/session', {
+    headers: {
+      Cookie: cookieHeader,
+    },
+  });
+
+  return response;
+};

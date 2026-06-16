@@ -1,41 +1,48 @@
 'use client';
 
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import css from './EditProfilePage.module.css';
 
-import { updateMe } from '@/lib/api/clientApi';
 import { useAuthStore } from '@/lib/store/authStore';
+import { updateMe } from '@/lib/api/clientApi';
 
 export default function EditProfilePage() {
   const router = useRouter();
 
   const user = useAuthStore((state) => state.user);
-
   const setUser = useAuthStore((state) => state.setUser);
 
   const [username, setUsername] = useState(user?.username ?? '');
+  const [loading, setLoading] = useState(false);
 
   if (!user) {
-    return null;
+    return <p>Loading...</p>;
   }
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
-      const updatedUser = await updateMe({
-        username,
+      const updated = await updateMe({ username });
+
+      setUser({
+        ...user,
+        username: updated.username,
       });
 
-      setUser(updatedUser);
-
       router.push('/profile');
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    router.back(); // ⬅️ ВИМОГА GoIT: повернення на попередню сторінку
   };
 
   return (
@@ -51,31 +58,26 @@ export default function EditProfilePage() {
           className={css.avatar}
         />
 
-        <form onSubmit={handleSave} className={css.profileInfo}>
+        <form className={css.profileInfo} onSubmit={handleSubmit}>
           <div className={css.usernameWrapper}>
             <label htmlFor="username">Username:</label>
-
             <input
               id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
               type="text"
               className={css.input}
+              value={username}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
             />
           </div>
 
           <p>Email: {user.email}</p>
 
           <div className={css.actions}>
-            <button type="submit" className={css.saveButton}>
-              Save
+            <button type="submit" className={css.saveButton} disabled={loading}>
+              {loading ? 'Saving...' : 'Save'}
             </button>
 
-            <button
-              type="button"
-              className={css.cancelButton}
-              onClick={() => router.push('/profile')}
-            >
+            <button type="button" className={css.cancelButton} onClick={handleCancel}>
               Cancel
             </button>
           </div>

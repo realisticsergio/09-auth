@@ -19,12 +19,7 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"],
-      "@/lib/api/clientApi": ["./lib/api/api.ts"],
-      "@/lib/api/serverApi": ["./lib/api/serverApi.ts"],
-      "@/lib/store/*": ["./lib/store/*"],
-      "@/components/*": ["./components/*"],
-      "@/types/*": ["./types/*"]
+      "@/*": ["./*"]
     }
   },
   "include": [

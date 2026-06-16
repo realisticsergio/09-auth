@@ -1,50 +1,59 @@
 import type { Metadata } from 'next';
+import { Roboto } from 'next/font/google';
+import './globals.css';
 import Header from '@/components/Header/Header';
 import Footer from '@/components/Footer/Footer';
-import Provider from '@/components/TanStackProvider/TanStackProvider';
-import './globals.css';
-import { Roboto } from 'next/font/google';
-import React from 'react';
+import Providers from '@/components/TanStackProvider/TanStackProvider';
 import AuthProvider from '@/components/AuthProvider/AuthProvider';
 
 const roboto = Roboto({
   weight: ['400', '500', '700'],
-  subsets: ['latin', 'cyrillic'],
-  display: 'swap',
   variable: '--font-roboto',
+  subsets: ['latin'],
+  display: 'swap',
 });
 
-const OG_IMAGE = 'https://ac.goit.global/fullstack/react/notehub-og-meta.jpg';
-
 export const metadata: Metadata = {
-  title: 'NoteHub - Best Note Management App',
-  description: 'Organize your thoughts, tasks, and daily meetings with NoteHub.',
+  title: 'NoteHub — Smart Notes Manager',
+  description:
+    'NoteHub — це сучасний застосунок для створення, редагування та організації особистих нотаток з підтримкою пошуку та модальних вікон.',
   openGraph: {
-    title: 'NoteHub - Best Note Management App',
-    description: 'Organize your thoughts, tasks, and daily meetings with NoteHub.',
+    title: 'NoteHub — Smart Notes Manager',
+    description:
+      'NoteHub — швидкий і зручний застосунок для керування нотатками. Створюйте, редагуйте та організовуйте свої записи легко.',
     url: 'https://08-zustand-weld-one.vercel.app/',
-    images: [{ url: OG_IMAGE }],
-    type: 'website',
+    images: [
+      {
+        url: 'https://ac.goit.global/fullstack/react/notehub-og-meta.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'NoteHub — Notes Manager App',
+      },
+    ],
   },
 };
 
-interface RootLayoutProps {
+export default function RootLayout({
+  children,
+  modal,
+}: Readonly<{
   children: React.ReactNode;
   modal: React.ReactNode;
-}
-
-export default function RootLayout({ children, modal }: RootLayoutProps) {
+}>) {
   return (
-    <html lang="en" className={roboto.variable}>
-      <body style={{ fontFamily: 'var(--font-roboto), sans-serif' }}>
-        <Provider>
+    <html lang="en" className={`${roboto.variable}`}>
+      <body>
+        <Providers>
+          <Header />
           <AuthProvider>
-            <Header />
-            <main>{children}</main>
-            {modal}
-            <Footer />
+            <main>
+              {children}
+              {modal}
+              <div id="modal-root"></div>
+            </main>
           </AuthProvider>
-        </Provider>
+          <Footer />
+        </Providers>
       </body>
     </html>
   );

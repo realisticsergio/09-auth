@@ -1,12 +1,24 @@
-import Link from 'next/link';
-import Image from 'next/image';
-import css from './ProfilePage.module.css';
 import { getMe } from '@/lib/api/serverApi';
-import { Metadata } from 'next';
+import Image from 'next/image';
+import Link from 'next/link';
+import type { Metadata } from 'next';
+import css from './ProfilePage.module.css';
 
 export const metadata: Metadata = {
-  title: 'Profile | NoteHub',
-  description: 'User profile page',
+  title: 'Profile Page | NoteHub',
+  description: 'User profile information',
+  openGraph: {
+    title: 'Profile Page | NoteHub',
+    description: 'User profile information',
+    images: [
+      {
+        url: 'https://ac.goit.global/fullstack/react/notehub-og-meta.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'NoteHub Profile',
+      },
+    ],
+  },
 };
 
 export default async function ProfilePage() {

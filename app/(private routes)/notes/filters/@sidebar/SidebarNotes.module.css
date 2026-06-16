@@ -1,3 +1,9 @@
+.sidebar {
+  background-color: #333;
+  min-height: 160vh;
+  padding: 20px 0;
+}
+
 .menuList {
   list-style-type: none;
   margin: 0;

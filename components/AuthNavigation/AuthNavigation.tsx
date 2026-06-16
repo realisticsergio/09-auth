@@ -2,66 +2,73 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-
-import css from './AuthNavigation.module.css';
-
-import { logout } from '@/lib/api/api.ts';
+import { logout } from '@/lib/api/clientApi';
 import { useAuthStore } from '@/lib/store/authStore';
+import css from './AuthNavigation.module.css';
 
 export default function AuthNavigation() {
   const router = useRouter();
 
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-
-  const user = useAuthStore((state) => state.user);
-
-  const clearIsAuthenticated = useAuthStore((state) => state.clearIsAuthenticated);
+  const { isAuthenticated, user, clearIsAuthenticated } = useAuthStore();
 
   const handleLogout = async () => {
     try {
       await logout();
-
-      clearIsAuthenticated();
-
-      router.push('/sign-in');
     } catch (error) {
-      console.error(error);
+      console.error('Logout failed:', error);
+    } finally {
+      clearIsAuthenticated();
+      router.push('/sign-in');
     }
   };
 
-  if (!isAuthenticated) {
-    return (
-      <>
-        <li className={css.navigationItem}>
-          <Link href="/sign-in" prefetch={false} className={css.navigationLink}>
-            Login
-          </Link>
-        </li>
-
-        <li className={css.navigationItem}>
-          <Link href="/sign-up" prefetch={false} className={css.navigationLink}>
-            Sign up
-          </Link>
-        </li>
-      </>
-    );
-  }
-
   return (
     <>
+      {/* Home завжди видно */}
       <li className={css.navigationItem}>
-        <Link href="/profile" prefetch={false} className={css.navigationLink}>
-          Profile
+        <Link href="/" prefetch={false} className={css.navigationLink}>
+          Home
         </Link>
       </li>
+      {isAuthenticated ? (
+        <>
+          {/* Notes тільки для залогінених */}
+          <li className={css.navigationItem}>
+            <Link href="/notes/filter/all" prefetch={false} className={css.navigationLink}>
+              Notes
+            </Link>
+          </li>
 
-      <li className={css.navigationItem}>
-        <p className={css.userEmail}>{user?.email}</p>
+          <li className={css.navigationItem}>
+            <Link href="/profile" prefetch={false} className={css.navigationLink}>
+              Profile
+            </Link>
+          </li>
 
-        <button onClick={handleLogout} className={css.logoutButton}>
-          Logout
-        </button>
-      </li>
+          <li className={css.navigationItem}>
+            <p className={css.userEmail}>{user?.email}</p>
+
+            <button className={css.logoutButton} onClick={handleLogout}>
+              Logout
+            </button>
+          </li>
+        </>
+      ) : (
+        <>
+          {/* Notes прихований */}
+          <li className={css.navigationItem}>
+            <Link href="/sign-up" prefetch={false} className={css.navigationLink}>
+              Register
+            </Link>
+          </li>
+
+          <li className={css.navigationItem}>
+            <Link href="/sign-in" prefetch={false} className={css.navigationLink}>
+              Login
+            </Link>
+          </li>
+        </>
+      )}
     </>
   );
 }

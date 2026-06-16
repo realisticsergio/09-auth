@@ -1,43 +1,46 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-
-import css from './SignUpPage.module.css';
-
 import { register } from '@/lib/api/clientApi';
 import { useAuthStore } from '@/lib/store/authStore';
+import css from './SignUpPage.module.css';
 
 export default function SignUpPage() {
   const router = useRouter();
-
   const setUser = useAuthStore((state) => state.setUser);
 
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     setError('');
 
-    const form = e.currentTarget;
-
-    const formData = new FormData(form);
-
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email')?.toString() ?? '';
+    const password = formData.get('password')?.toString() ?? '';
 
     try {
-      const user = await register({
-        email,
-        password,
+      await register({ email, password });
+
+      setUser({
+        email: email,
+        username: email.split('@')[0],
+        avatar: '',
       });
 
-      setUser(user);
+      router.replace('/profile', { scroll: false });
+    } catch (err: unknown) {
+      const message =
+        typeof err === 'object' && err !== null && 'response' in err
+          ? (
+              err as {
+                response?: { data?: { message?: string } };
+              }
+            ).response?.data?.message
+          : null;
 
-      router.push('/profile');
-    } catch {
-      setError('Registration failed');
+      setError(message || 'Registration failed');
     }
   };
 
@@ -45,16 +48,14 @@ export default function SignUpPage() {
     <main className={css.mainContent}>
       <h1 className={css.formTitle}>Sign up</h1>
 
-      <form onSubmit={handleSubmit} className={css.form}>
+      <form className={css.form} onSubmit={handleSubmit}>
         <div className={css.formGroup}>
           <label htmlFor="email">Email</label>
-
           <input id="email" type="email" name="email" className={css.input} required />
         </div>
 
         <div className={css.formGroup}>
           <label htmlFor="password">Password</label>
-
           <input id="password" type="password" name="password" className={css.input} required />
         </div>
 

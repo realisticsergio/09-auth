@@ -1,59 +1,65 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-
-import css from './SignInPage.module.css';
-
-import { login } from '@/lib/api/clientApi';
+import { login, getMe } from '@/lib/api/clientApi';
 import { useAuthStore } from '@/lib/store/authStore';
+import css from './SignInPage.module.css';
 
 export default function SignInPage() {
   const router = useRouter();
+  const [error, setError] = useState('');
 
   const setUser = useAuthStore((state) => state.setUser);
 
-  const [error, setError] = useState('');
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     setError('');
 
     const formData = new FormData(e.currentTarget);
 
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
+    const email = formData.get('email')?.toString() || '';
+    const password = formData.get('password')?.toString() || '';
 
     try {
-      const user = await login({
-        email,
-        password,
-      });
+      // 1) Логін
+      await login({ email, password });
 
+      // 2) Отримуємо дані користувача
+      const user = await getMe();
+
+      // 3) Зберігаємо у Zustand
       setUser(user);
 
-      router.push('/profile');
-    } catch {
-      setError('Invalid email or password');
+      // 4) Редірект
+      router.replace('/profile', { scroll: false });
+    } catch (err: unknown) {
+      const message =
+        typeof err === 'object' && err !== null && 'response' in err
+          ? (
+              err as {
+                response?: { data?: { message?: string } };
+              }
+            ).response?.data?.message
+          : null;
+
+      setError(message || 'Login failed');
     }
   };
 
   return (
     <main className={css.mainContent}>
-      <form onSubmit={handleSubmit} className={css.form}>
+      <form className={css.form} onSubmit={handleSubmit}>
         <h1 className={css.formTitle}>Sign in</h1>
 
         <div className={css.formGroup}>
           <label htmlFor="email">Email</label>
-
-          <input id="email" type="email" name="email" className={css.input} required />
+          <input id="email" name="email" type="email" className={css.input} required />
         </div>
 
         <div className={css.formGroup}>
           <label htmlFor="password">Password</label>
-
-          <input id="password" type="password" name="password" className={css.input} required />
+          <input id="password" name="password" type="password" className={css.input} required />
         </div>
 
         <div className={css.actions}>
