@@ -44,15 +44,13 @@ export default function RootLayout({
     <html lang="en" className={`${roboto.variable}`}>
       <body>
         <Providers>
-          <Header />
           <AuthProvider>
-            <main>
-              {children}
-              {modal}
-              <div id="modal-root"></div>
-            </main>
+            <Header />
+            <main>{children}</main>
+            {modal}
+            <Footer />
+            <div id="modal-root"></div>
           </AuthProvider>
-          <Footer />
         </Providers>
       </body>
     </html>
