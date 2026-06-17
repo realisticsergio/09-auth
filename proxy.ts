@@ -38,11 +38,13 @@ export async function proxy(request: NextRequest) {
 
         if (!res.ok) throw new Error('Session refresh failed');
 
-        const response = NextResponse.next();
+        const data = await res.json().catch(() => null);
 
-        const setCookieHeader = res.headers.get('set-cookie');
-        if (setCookieHeader) {
-          response.headers.set('set-cookie', setCookieHeader);
+        const response = NextResponse.redirect(request.url);
+
+        const setCookies = res.headers.get('set-cookie');
+        if (setCookies) {
+          response.headers.append('set-cookie', setCookies);
         }
 
         return response;

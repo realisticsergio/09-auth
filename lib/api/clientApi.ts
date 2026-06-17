@@ -8,69 +8,90 @@ import { api } from './api';
 import type { Note } from '@/types/note';
 import type { User } from '@/types/user';
 
-// 1. Отримання нотаток з пагінацією та фільтрами
-export const fetchNotes = async (params: {
+/* =========================
+   📌 NOTES
+========================= */
+
+export type FetchNotesParams = {
   page: number;
   perPage: number;
   search?: string;
   tag?: string;
-}): Promise<{ notes: Note[]; totalPages: number }> => {
-  const { data } = await api.get('/notes', { params });
+};
+
+export type FetchNotesResponse = {
+  notes: Note[];
+  totalPages: number;
+};
+
+export const fetchNotes = async (params: FetchNotesParams): Promise<FetchNotesResponse> => {
+  const { data } = await api.get<FetchNotesResponse>('/notes', { params });
   return data;
 };
 
-// 2. Отримання однієї нотатки за ID
 export const fetchNoteById = async (id: string): Promise<Note> => {
-  const { data } = await api.get(`/notes/${id}`);
+  const { data } = await api.get<Note>(`/notes/${id}`);
   return data;
 };
 
-// 3. Створення нової нотатки
-export const createNote = async (payload: {
+export type CreateNoteDto = {
   title: string;
   content: string;
-  tags?: string[];
-}): Promise<Note> => {
-  const { data } = await api.post('/notes', payload);
+  tag: string; // 👈 fixed (НЕ tags[])
+};
+
+export const createNote = async (payload: CreateNoteDto): Promise<Note> => {
+  const { data } = await api.post<Note>('/notes', payload);
   return data;
 };
 
-// 4. Оновлення існуючої нотатки
-export const deleteNote = async (id: string): Promise<void> => {
-  await api.delete(`/notes/${id}`);
-};
-
-// 5. Реєстрація користувача
-export const register = async (payload: Record<string, any>): Promise<any> => {
-  const { data } = await api.post('/auth/register', payload);
+export const deleteNote = async (id: string): Promise<Note> => {
+  const { data } = await api.delete<Note>(`/notes/${id}`);
   return data;
 };
 
-// 6. Логін користувача
-export const login = async (payload: Record<string, any>): Promise<any> => {
-  const { data } = await api.post('/auth/login', payload);
+/* =========================
+   🔐 AUTH
+========================= */
+
+export type AuthCredentials = {
+  email: string;
+  password: string;
+};
+
+export const register = async (payload: AuthCredentials): Promise<User> => {
+  const { data } = await api.post<User>('/auth/register', payload);
   return data;
 };
 
-// 7. Логаут
+export const login = async (payload: AuthCredentials): Promise<User> => {
+  const { data } = await api.post<User>('/auth/login', payload);
+  return data;
+};
+
 export const logout = async (): Promise<void> => {
   await api.post('/auth/logout');
 };
 
-// 8. Перевірка сесії (оновлення токенів)
-export const checkSession = async (): Promise<any> => {
-  const { data } = await api.get('/auth/session');
+export const checkSession = async (): Promise<User> => {
+  const { data } = await api.get<User>('/auth/session');
   return data;
 };
 
-// 9. Отримання даних поточного користувача
+/* =========================
+   👤 USER
+========================= */
+
 export const getMe = async (): Promise<User> => {
-  const { data } = await api.get('/users/me');
+  const { data } = await api.get<User>('/users/me');
   return data;
 };
 
-// 10. Оновлення профілю користувача
-export const updateMe = async (payload: Partial<User>): Promise<User> => {
-  const { data } = await api.patch('/users/me', payload);
+export type UpdateMeDto = {
+  username: string;
+};
+
+export const updateMe = async (payload: UpdateMeDto): Promise<User> => {
+  const { data } = await api.patch<User>('/users/me', payload);
   return data;
 };
