@@ -1,54 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 const privateRoutes = ['/profile', '/notes'];
 const publicRoutes = ['/sign-in', '/sign-up'];
 
+async function refreshSession(refreshToken: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+  return fetch(`${baseUrl}/api/auth/session`, {
+    method: 'GET',
+    headers: {
+      Cookie: `refreshToken=${refreshToken}`,
+    },
+  });
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  //  const sessionToken = request.cookies.get('session');
-  const accessToken = request.cookies.get('accessToken')?.value;
-  const refreshToken = request.cookies.get('refreshToken')?.value;
+  const cookiesStore = await cookies();
 
-  const isPrivate = privateRoutes.some((route) => pathname.startsWith(route));
-  const isPublic = publicRoutes.some((route) => pathname.startsWith(route));
+  const accessToken = cookiesStore.get('accessToken')?.value;
+  const refreshToken = cookiesStore.get('refreshToken')?.value;
 
-  // if (isPrivate && !sessionToken) {
-  //   return NextResponse.redirect(new URL('/sign-in', request.url));
-  // }
+  const isPrivate = privateRoutes.some((r) => pathname.startsWith(r));
 
-  // if (isPublic && sessionToken) {
-  //   return NextResponse.redirect(new URL('/profile', request.url));
-  // }
+  const isPublic = publicRoutes.some((r) => pathname.startsWith(r));
+
   if (isPrivate) {
     if (!accessToken && !refreshToken) {
       return NextResponse.redirect(new URL('/sign-in', request.url));
     }
 
+    if (accessToken) {
+      return NextResponse.next();
+    }
+
     if (!accessToken && refreshToken) {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        const res = await refreshSession(refreshToken);
 
-        const res = await fetch(`${baseUrl}/api/auth/session`, {
-          method: 'GET',
-          headers: {
-            Cookie: `refreshToken=${refreshToken}`,
-          },
-        });
+        if (!res.ok) {
+          const redirect = NextResponse.redirect(new URL('/sign-in', request.url));
 
-        if (!res.ok) throw new Error('Session refresh failed');
+          redirect.cookies.delete('accessToken');
+          redirect.cookies.delete('refreshToken');
 
-        const data = await res.json().catch(() => null);
-
-        const response = NextResponse.redirect(request.url);
-
-        const setCookies = res.headers.get('set-cookie');
-        if (setCookies) {
-          response.headers.append('set-cookie', setCookies);
+          return redirect;
         }
 
-        return response;
-      } catch (error) {
+        //const response = NextResponse.next();
+
+        //const setCookie = res.headers.get('set-cookie');
+
+        // if (setCookie) {
+        //   response.headers.set('set-cookie', setCookie);
+        // }
+
+        return NextResponse.redirect(request.url);
+      } catch {
         return NextResponse.redirect(new URL('/sign-in', request.url));
       }
     }
@@ -57,11 +67,10 @@ export async function proxy(request: NextRequest) {
   if (isPublic && accessToken) {
     return NextResponse.redirect(new URL('/', request.url));
   }
+
   return NextResponse.next();
 }
 
-// export const config = {
-//   matcher: ['/((?!_next/static|_next/image|favicon.ico|api).*)'],
 export const config = {
   matcher: ['/profile/:path*', '/notes/:path*', '/sign-in', '/sign-up'],
 };
