@@ -48,16 +48,16 @@ export async function proxy(request: NextRequest) {
 
           return redirect;
         }
-
+        const response = NextResponse.redirect(request.url);
         //const response = NextResponse.next();
 
-        //const setCookie = res.headers.get('set-cookie');
+        const setCookie = res.headers.get('set-cookie');
 
-        // if (setCookie) {
-        //   response.headers.set('set-cookie', setCookie);
-        // }
+        if (setCookie) {
+          response.headers.set('set-cookie', setCookie);
+        }
 
-        return NextResponse.redirect(request.url);
+        return response;
       } catch {
         return NextResponse.redirect(new URL('/sign-in', request.url));
       }
