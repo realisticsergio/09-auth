@@ -51,10 +51,42 @@ export async function proxy(request: NextRequest) {
         const response = NextResponse.redirect(request.url);
         //const response = NextResponse.next();
 
-        const setCookie = res.headers.get('set-cookie');
+        const setCookies: string[] = res.headers.getSetCookie();
 
-        if (setCookie) {
-          response.headers.set('set-cookie', setCookie);
+        if (setCookies && setCookies.length > 0) {
+          setCookies.forEach((cookieString: string) => {
+            // Парсимо рядок куки
+            const parts: string[] = cookieString.split(';');
+            const nameValue = parts[0];
+
+            if (nameValue) {
+              const equalIndex = nameValue.indexOf('=');
+
+              if (equalIndex !== -1) {
+                const name = nameValue.substring(0, equalIndex).trim();
+                const value = nameValue.substring(equalIndex + 1).trim();
+
+                // Оголошуємо типізований об'єкт для опцій куки
+                const options: Record<string, string | number | boolean> = {};
+
+                parts.slice(1).forEach((part: string) => {
+                  const pair = part.split('=');
+                  const optName = pair[0]?.trim().toLowerCase();
+                  const optVal = pair[1]?.trim();
+
+                  if (optName === 'path') options.path = optVal;
+                  if (optName === 'max-age' && optVal) options.maxAge = parseInt(optVal, 10);
+                  if (optName === 'domain') options.domain = optVal;
+                  if (optName === 'httponly') options.httpOnly = true;
+                  if (optName === 'secure') options.secure = true;
+                  if (optName === 'samesite') options.sameSite = optVal;
+                });
+
+                // Встановлюємо куку через офіційне API мідлвари
+                response.cookies.set(name, value, options);
+              }
+            }
+          });
         }
 
         return response;
